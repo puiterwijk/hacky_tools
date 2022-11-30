@@ -1,13 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
-	"context"
-	"text/template"
-	"strings"
 	"reflect"
+	"strings"
+	"text/template"
 
 	"github.com/Khan/genqlient/graphql"
 	"golang.org/x/oauth2"
@@ -17,25 +17,25 @@ import (
 
 var branchProtectionTemplate = template.Must(template.New("repo").Funcs(templateFuncs).Parse(branchProtectionTemplateStr))
 
-var templateFuncs = template.FuncMap {
-  "listRepr": func(list []string) string {
-    if len(list) == 0 {
-      return "[]"
-    }
+var templateFuncs = template.FuncMap{
+	"listRepr": func(list []string) string {
+		if len(list) == 0 {
+			return "[]"
+		}
 
-    var b strings.Builder
+		var b strings.Builder
 
-    fmt.Fprintln(&b, "[")
+		fmt.Fprintln(&b, "[")
 
-    for _, item := range list {
-      fmt.Fprintf(&b, "      \"%s\",", item)
-      fmt.Fprintln(&b, "")
-    }
+		for _, item := range list {
+			fmt.Fprintf(&b, "      \"%s\",", item)
+			fmt.Fprintln(&b, "")
+		}
 
-    fmt.Fprint(&b, "    ]")
+		fmt.Fprint(&b, "    ]")
 
-    return b.String()
-  },
+		return b.String()
+	},
 }
 
 const branchProtectionTemplateStr = `
@@ -69,41 +69,42 @@ resource "github_branch_protection" "{{ .RepoOwner }}-{{ .RepoResourceName }}-{{
   }
 }
 `
+
 type ruleInfo struct {
-	RepoOwner string
+	RepoOwner        string
 	RepoResourceName string
-	ResourceName string
+	ResourceName     string
 
 	Pattern string
 
-	AllowsDeletions bool
+	AllowsDeletions   bool
 	AllowsForcePushes bool
-	BlocksCreations bool
+	BlocksCreations   bool
 	// Unsupported
-	BypassForcePushAllowances []string
+	BypassForcePushAllowances   []string
 	BypassPullRequestAllowances []string
-	DismissesStaleReviews bool
-	IsAdminEnforced bool
+	DismissesStaleReviews       bool
+	IsAdminEnforced             bool
 	// Unsupported
 	LockAllowsFetchAndMerge bool
 	// Unsupported
 	LockBranch bool
 	// Unsupported
-	RequireLastPushApproval bool
+	RequireLastPushApproval      bool
 	RequiredApprovingReviewCount int
-	RequiredStatusCheckContexts []string
+	RequiredStatusCheckContexts  []string
 	// Unsupported
-	RequiredStatusChecks interface{}
-	RequiresApprovingReviews bool
-	RequiresCodeOwnerReviews bool
-	RequiresCommitSignatures bool
+	RequiredStatusChecks           interface{}
+	RequiresApprovingReviews       bool
+	RequiresCodeOwnerReviews       bool
+	RequiresCommitSignatures       bool
 	RequiresConversationResolution bool
-	RequiresLinearHistory bool
-	RequiresStatusChecks bool
-	RequiresStrictStatusChecks bool
-	RestrictsPushes bool
-	RestrictsReviewDismissals bool
-	ReviewDismissalAllowances []string
+	RequiresLinearHistory          bool
+	RequiresStatusChecks           bool
+	RequiresStrictStatusChecks     bool
+	RestrictsPushes                bool
+	RestrictsReviewDismissals      bool
+	ReviewDismissalAllowances      []string
 }
 
 func (r *ruleInfo) Check() {
@@ -200,35 +201,35 @@ func main() {
 			ResourceName = strings.ReplaceAll(ResourceName, "/", "_slash_")
 			ResourceName = strings.ReplaceAll(ResourceName, ".", "_")
 
-			info := ruleInfo {
-				RepoOwner: os.Args[1],
+			info := ruleInfo{
+				RepoOwner:        os.Args[1],
 				RepoResourceName: RepoResourceName,
-				ResourceName: ResourceName,
+				ResourceName:     ResourceName,
 
-				Pattern: rule.Pattern,
-				AllowsDeletions: rule.AllowsDeletions,
-				AllowsForcePushes: rule.AllowsForcePushes,
-				BlocksCreations: rule.BlocksCreations,
-				BypassForcePushAllowances: actorsToList(rule.BypassForcePushAllowances.Nodes),
-				BypassPullRequestAllowances: actorsToList(rule.BypassPullRequestAllowances.Nodes),
-				DismissesStaleReviews: rule.DismissesStaleReviews,
-				IsAdminEnforced: rule.IsAdminEnforced,
-				LockAllowsFetchAndMerge: rule.LockAllowsFetchAndMerge,
-				LockBranch: rule.LockBranch,
-				RequireLastPushApproval: rule.RequireLastPushApproval,
-				RequiredApprovingReviewCount: rule.RequiredApprovingReviewCount,
-				RequiredStatusCheckContexts: rule.RequiredStatusCheckContexts,
-				RequiredStatusChecks: rule.RequiredStatusChecks,
-				RequiresApprovingReviews: rule.RequiresApprovingReviews,
-				RequiresCodeOwnerReviews: rule.RequiresCodeOwnerReviews,
-				RequiresCommitSignatures: rule.RequiresCommitSignatures,
+				Pattern:                        rule.Pattern,
+				AllowsDeletions:                rule.AllowsDeletions,
+				AllowsForcePushes:              rule.AllowsForcePushes,
+				BlocksCreations:                rule.BlocksCreations,
+				BypassForcePushAllowances:      actorsToList(rule.BypassForcePushAllowances.Nodes),
+				BypassPullRequestAllowances:    actorsToList(rule.BypassPullRequestAllowances.Nodes),
+				DismissesStaleReviews:          rule.DismissesStaleReviews,
+				IsAdminEnforced:                rule.IsAdminEnforced,
+				LockAllowsFetchAndMerge:        rule.LockAllowsFetchAndMerge,
+				LockBranch:                     rule.LockBranch,
+				RequireLastPushApproval:        rule.RequireLastPushApproval,
+				RequiredApprovingReviewCount:   rule.RequiredApprovingReviewCount,
+				RequiredStatusCheckContexts:    rule.RequiredStatusCheckContexts,
+				RequiredStatusChecks:           rule.RequiredStatusChecks,
+				RequiresApprovingReviews:       rule.RequiresApprovingReviews,
+				RequiresCodeOwnerReviews:       rule.RequiresCodeOwnerReviews,
+				RequiresCommitSignatures:       rule.RequiresCommitSignatures,
 				RequiresConversationResolution: rule.RequiresConversationResolution,
-				RequiresLinearHistory: rule.RequiresLinearHistory,
-				RequiresStatusChecks: rule.RequiresStatusChecks,
-				RequiresStrictStatusChecks: rule.RequiresStrictStatusChecks,
-				RestrictsPushes: rule.RestrictsPushes,
-				RestrictsReviewDismissals: rule.RestrictsReviewDismissals,
-				ReviewDismissalAllowances: actorsToList(rule.ReviewDismissalAllowances.Nodes),
+				RequiresLinearHistory:          rule.RequiresLinearHistory,
+				RequiresStatusChecks:           rule.RequiresStatusChecks,
+				RequiresStrictStatusChecks:     rule.RequiresStrictStatusChecks,
+				RestrictsPushes:                rule.RestrictsPushes,
+				RestrictsReviewDismissals:      rule.RestrictsReviewDismissals,
+				ReviewDismissalAllowances:      actorsToList(rule.ReviewDismissalAllowances.Nodes),
 			}
 			info.Check()
 			if os.Args[2] == "generate" {
