@@ -1,13 +1,14 @@
 package main
 
 import (
-  "fmt"
-  "os"
-  "context"
-  "text/template"
-  "strings"
+	"context"
+	"fmt"
+	"os"
+	"strings"
+	"text/template"
 
-  "github.com/google/go-github/v48/github"
+	"github.com/google/go-github/v48/github"
+	"golang.org/x/oauth2"
 )
 
 const repoTemplateStr = `
@@ -64,34 +65,58 @@ resource "github_repository" "{{ .Info.Owner.Login }}-{{ .ResourceName }}" {
   ignore_vulnerability_alerts_during_read = local.github_policy.ignore_vulnerability_alerts_during_read
 }
 `
+
 var repoTemplate = template.Must(template.New("repo").Parse(repoTemplateStr))
 
 type repoInfo struct {
-    ResourceName string
-    Info *github.Repository
+	ResourceName string
+	Info         *github.Repository
 }
 
 func main() {
-    if len(os.Args) != 2 {
-        panic("Owner name needed")
-    }
-    ctx := context.Background()
+	if len(os.Args) != 2 {
+		panic("Owner name needed")
+	}
+	ctx := context.Background()
 
-    client := github.NewClient(nil)
-    repoClient := client.Repositories
-    repos, _, err := repoClient.List(ctx, os.Args[1], nil)
-    if err != nil {
-      fmt.Println("Error getting repos: ", err)
-      panic("done")
-    }
-    for _, repo := range repos {
-      info := repoInfo {
-          ResourceName: strings.ReplaceAll(*repo.Name, ".", "_"),
-          Info: repo,
-      }
-      if err := repoTemplate.Execute(os.Stdout, info); err != nil {
-        fmt.Println("Error executing template: ", err)
-        panic("Errored")
-      }
-    }
+	token_cts, err := os.ReadFile("gh_token")
+	if err != nil {
+		panic("gh_token file not read")
+	}
+	token := strings.TrimSpace(string(token_cts))
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+	tc := oauth2.NewClient(ctx, ts)
+
+	client := github.NewClient(tc)
+
+	opt := &github.RepositoryListByOrgOptions{
+		ListOptions: github.ListOptions{PerPage: 10},
+		Sort:        "full_name",
+	}
+	var allRepos []*github.Repository
+	for {
+		repos, resp, err := client.Repositories.ListByOrg(ctx, os.Args[1], opt)
+		if err != nil {
+			fmt.Println("Error getting page: ", err)
+			panic("Error getting page")
+		}
+		allRepos = append(allRepos, repos...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+
+	for _, repo := range allRepos {
+		info := repoInfo{
+			ResourceName: strings.ReplaceAll(*repo.Name, ".", "_"),
+			Info:         repo,
+		}
+		if err := repoTemplate.Execute(os.Stdout, info); err != nil {
+			fmt.Println("Error executing template: ", err)
+			panic("Errored")
+		}
+	}
 }
