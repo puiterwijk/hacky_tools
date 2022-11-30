@@ -1,0 +1,4 @@
+schema: schema.graphql
+operations:
+- branchprotections.graphql
+generated: generated.go

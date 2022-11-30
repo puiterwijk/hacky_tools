@@ -1,0 +1,111 @@
+query getBranchProtections($owner:String!) { 
+  repositoryOwner(login:$owner) {
+    repositories(last:100) {
+      nodes {
+        name
+        branchProtectionRules(last:10) {
+          nodes {
+            pattern
+            allowsDeletions
+            allowsForcePushes
+            blocksCreations
+            bypassForcePushAllowances(last:10) {
+              nodes {
+                actor {
+                  ... on User {
+                    login
+                  }
+                  ... on Team {
+                    name
+                    organization {
+                      name
+                    }
+                  }
+                  ... on App {
+                    name
+                  }
+                }
+              }
+            }
+            bypassPullRequestAllowances(last:10){
+              nodes {
+                actor {
+                  ... on User {
+                    login
+                  }
+                  ... on Team {
+                    name
+                    organization {
+                      name
+                    }
+                  }
+                  ... on App {
+                    name
+                  }
+                }
+              }
+            }
+            dismissesStaleReviews
+            isAdminEnforced
+            lockAllowsFetchAndMerge
+            lockBranch
+            pushAllowances(last:10) {
+              nodes {
+                actor {
+                  ... on User {
+                    login
+                  }
+                  ... on Team {
+                    name
+                    organization {
+                      name
+                    }
+                  }
+                  ... on App {
+                    name
+                  }
+                }
+              }
+            }
+            requireLastPushApproval
+            requiredApprovingReviewCount
+            requiredStatusCheckContexts
+            requiredStatusChecks {
+              app {
+                id
+              }
+              context
+            }
+            requiresApprovingReviews
+            requiresCodeOwnerReviews
+            requiresCommitSignatures
+            requiresConversationResolution
+            requiresLinearHistory
+            requiresStatusChecks
+            requiresStrictStatusChecks
+            restrictsPushes
+            restrictsReviewDismissals
+            reviewDismissalAllowances(last: 50) {
+              nodes {
+                actor {
+                  ... on User {
+                    login
+                  }
+                  ... on Team {
+                    name
+                    organization {
+                      name
+                    }
+                  }
+                  ... on App {
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
