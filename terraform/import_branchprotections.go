@@ -175,10 +175,14 @@ func main() {
 	if len(os.Args) < 3 {
 		panic("Owner name and function needed")
 	}
+	token_cts, err := os.ReadFile("gh_token")
+	if err != nil {
+		panic("gh_token file not read")
+	}
+	token := strings.TrimSpace(string(token_cts))
 	ctx := context.Background()
-	panic("Insert token underneath here")
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: ""},
+		&oauth2.Token{AccessToken: token},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 	client := graphql.NewClient("https://api.github.com/graphql", tc)
@@ -267,4 +271,3 @@ func main() {
 		}
 	}
 }
-
